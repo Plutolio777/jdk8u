@@ -135,6 +135,7 @@ public final class Duration
 
     /**
      * Constant for a duration of zero.
+     * 定义了一个时间跨度为0的模型 在一些方法中用于 Duration的加减计算
      */
     public static final Duration ZERO = new Duration(0, 0);
     /**
@@ -143,10 +144,21 @@ public final class Duration
     private static final long serialVersionUID = 3078945930695997490L;
     /**
      * Constant for nanos per second.
+     * 常量：记录秒和纳秒的换算关系
      */
     private static final BigInteger BI_NANOS_PER_SECOND = BigInteger.valueOf(NANOS_PER_SECOND);
     /**
      * The pattern for parsing.
+     *
+     * Comment:
+     * ?: 为正则中的非捕获组，只分组不捕获
+     * Group1: ([-+]?)  捕获P前面的正负号
+     * Group2: ([-+]?[0-9]+) 捕获D前面的正负号和数字  如 +3D 333D
+     * Group3: (T(?:([-+]?[0-9]+)H)?(?:([-+]?[0-9]+)M)?(?:([-+]?[0-9]+)(?:[.,]([0-9]{0,9}))?S)?) 捕获D后面所有内容
+     * Group4: ([-+]?[0-9]+) 捕获H前面的正负号和数字
+     * Group5: ([-+]?[0-9]+) 捕获M前面的正负号和数字
+     * Group6: ([-+]?[0-9]+) 捕获S整数部分的正负号和数字
+     * Group7: ([0-9]{0,9}) 捕获S小数部分的数字
      */
     private static final Pattern PATTERN =
             Pattern.compile("([-+]?)P(?:([-+]?[0-9]+)D)?" +
@@ -155,6 +167,7 @@ public final class Duration
 
     /**
      * The number of seconds in the duration.
+     * 一个Duration都是由 seconds和nanos组成的时间间隔的抽象
      */
     private final long seconds;
     /**
@@ -163,7 +176,13 @@ public final class Duration
      */
     private final int nanos;
 
-    //-----------------------------------------------------------------------
+
+
+
+    /*▼ structure:创建/执行/清理任务 ████████████████████████████████████████████████████████████████████████████████┓ */
+    /*▲ structure:创建/执行/清理任务 ████████████████████████████████████████████████████████████████████████████████┛ */
+
+    /*▼ structure:工厂方法(根据long创建) ████████████████████████████████████████████████████████████████████████████████┓ */
     /**
      * Obtains a {@code Duration} representing a number of standard 24 hour days.
      * <p>
@@ -174,6 +193,7 @@ public final class Duration
      * @param days  the number of days, positive or negative
      * @return a {@code Duration}, not null
      * @throws ArithmeticException if the input days exceeds the capacity of {@code Duration}
+     * 一天是86400秒 乘上天数 再给0纳秒
      */
     public static Duration ofDays(long days) {
         return create(Math.multiplyExact(days, SECONDS_PER_DAY), 0);
@@ -284,7 +304,7 @@ public final class Duration
         }
         return create(secs, nos);
     }
-
+    /*▲ structure:工厂方法(根据long创建) ████████████████████████████████████████████████████████████████████████████████┛ */
     //-----------------------------------------------------------------------
     /**
      * Obtains a {@code Duration} representing an amount in the specified unit.
@@ -303,6 +323,8 @@ public final class Duration
      * @return a {@code Duration}, not null
      * @throws DateTimeException if the period unit has an estimated duration
      * @throws ArithmeticException if a numeric overflow occurs
+     * 根据时间单位和 long数值来创建 比如 创建 3个Day单位的Duration 可以调用 of(3,ChronoUnit.DAYS) 创建一个三天的Duration
+     * 它的实现原理很简单就是通过Duration的plus方法 与ZERO相加
      */
     public static Duration of(long amount, TemporalUnit unit) {
         return ZERO.plus(amount, unit);
@@ -382,6 +404,16 @@ public final class Duration
      * @param text  the text to parse, not null
      * @return the parsed duration, not null
      * @throws DateTimeParseException if the text cannot be parsed to a duration
+     *
+     *
+     * PATTERN = "([-+]?)P(?:([-+]?[0-9]+)D)?(T(?:([-+]?[0-9]+)H)?(?:([-+]?[0-9]+)M)?(?:([-+]?[0-9]+)(?:[.,]([0-9]{0,9}))?S)?)?"
+     *  Group1: ([-+]?)  捕获P前面的正负号
+     *  Group2: ([-+]?[0-9]+) 捕获D前面的正负号和数字  如 +3D 333D
+     *  Group3: (T(?:([-+]?[0-9]+)H)?(?:([-+]?[0-9]+)M)?(?:([-+]?[0-9]+)(?:[.,]([0-9]{0,9}))?S)?) 捕获D后面所有内容
+     *  Group4: ([-+]?[0-9]+) 捕获H前面的正负号和数字
+     *  Group5: ([-+]?[0-9]+) 捕获M前面的正负号和数字
+     *  Group6: ([-+]?[0-9]+) 捕获S整数部分的正负号和数字
+     *  Group7: ([0-9]{0,9}) 捕获S小数部分的数字
      */
     public static Duration parse(CharSequence text) {
         Objects.requireNonNull(text, "text");
@@ -467,6 +499,7 @@ public final class Duration
      * @return a {@code Duration}, not null
      * @throws DateTimeException if the seconds between the temporals cannot be obtained
      * @throws ArithmeticException if the calculation exceeds the capacity of {@code Duration}
+     * todo : 看完Temporal再看
      */
     public static Duration between(Temporal startInclusive, Temporal endExclusive) {
         try {
@@ -526,6 +559,8 @@ public final class Duration
      * @return the long value of the unit
      * @throws DateTimeException if the unit is not supported
      * @throws UnsupportedTemporalTypeException if the unit is not supported
+     * ps: get这个方法是 TemporalAmount 接口定义的
+     * ps: Unit都是枚举类，因此可以使用 == 从这里可以看出 Duration只支持 SECONDS 和 NANOS
      */
     @Override
     public long get(TemporalUnit unit) {
