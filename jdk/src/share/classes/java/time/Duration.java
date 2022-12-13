@@ -262,6 +262,8 @@ public final class Duration
      * @throws ArithmeticException if the adjustment causes the seconds to exceed the capacity of {@code Duration}
      */
     public static Duration ofSeconds(long seconds, long nanoAdjustment) {
+        // nanoAdjustment 整除 NANOS_PER_SECOND 得到溢出的 秒
+        // 然后再对 nanoAdjustment取余获取 剩余的 纳秒
         long secs = Math.addExact(seconds, Math.floorDiv(nanoAdjustment, NANOS_PER_SECOND));
         int nos = (int) Math.floorMod(nanoAdjustment, NANOS_PER_SECOND);
         return create(secs, nos);
@@ -277,8 +279,8 @@ public final class Duration
      * @return a {@code Duration}, not null
      */
     public static Duration ofMillis(long millis) {
-        long secs = millis / 1000;
-        int mos = (int) (millis % 1000);
+        long secs = millis / 1000; // 1000毫秒等于一秒 整除
+        int mos = (int) (millis % 1000); // 取余
         if (mos < 0) {
             mos += 1000;
             secs--;
@@ -327,6 +329,8 @@ public final class Duration
      * 它的实现原理很简单就是通过Duration的plus方法 与ZERO相加
      */
     public static Duration of(long amount, TemporalUnit unit) {
+        // 传入一个单位和 单位数量得到一个Duration
+        // 如传入 3 和 ChronoUnit.Days 得到一个三天的Duration
         return ZERO.plus(amount, unit);
     }
 
@@ -352,6 +356,7 @@ public final class Duration
      * @throws ArithmeticException if numeric overflow occurs
      */
     public static Duration from(TemporalAmount amount) {
+        // 空对象抛出异常
         Objects.requireNonNull(amount, "amount");
         Duration duration = ZERO;
         for (TemporalUnit unit : amount.getUnits()) {

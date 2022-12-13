@@ -221,6 +221,7 @@ public enum ChronoUnit implements TemporalUnit {
      * daylight saving time and months have different lengths.
      *
      * @return true if the duration is estimated, false if accurate
+     * 天以上的单位都是估计时间
      */
     @Override
     public boolean isDurationEstimated() {
@@ -235,6 +236,7 @@ public enum ChronoUnit implements TemporalUnit {
      * Time-based units and {@code FOREVER} return false.
      *
      * @return true if a date unit, false if a time unit
+     * 间与天与永久之间的单位都是日期单位
      */
     @Override
     public boolean isDateBased() {
@@ -248,6 +250,7 @@ public enum ChronoUnit implements TemporalUnit {
      * Date-based units and {@code FOREVER} return false.
      *
      * @return true if a time unit, false if a date unit
+     * 天之前的单位都是时间单位
      */
     @Override
     public boolean isTimeBased() {
